@@ -647,9 +647,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         if (tagTech.equals(NdefFormatable.class.getName())) {
                             fireNdefFormatableEvent(tag);
                         } else if (tagTech.equals(Ndef.class.getName())) 
-						{ //
-                            Ndef ndef = Ndef.get(tag);
-							
+						{ //							
 							Ndef ndef = Ndef.get(tag);
 							try {
 								while (true) {
