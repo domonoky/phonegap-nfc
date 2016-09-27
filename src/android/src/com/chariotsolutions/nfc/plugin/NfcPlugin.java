@@ -614,18 +614,66 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
                 Parcelable[] messages = intent.getParcelableArrayExtra((NfcAdapter.EXTRA_NDEF_MESSAGES));
 
-                if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
+                if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) 
+				{
                     Ndef ndef = Ndef.get(tag);
-                    fireNdefEvent(NDEF_MIME, ndef, messages);
+					try {
+						while (true) {
+							try {
+								Thread.sleep(1000);
+
+								ndef.connect();
+								NdefMessage msg = ndef.getNdefMessage();
+
+								// TODO: do something
+								fireNdefEvent(NDEF_MIME, ndef, messages);
+							} catch (IOException e) {
+								// if the tag is gone we might want to end the thread:
+								break;
+							} finally {
+								try {
+									ndef.close();
+								} catch (Exception e) {}
+							}
+						}
+					} catch (InterruptedException e) {
+					}
+					
+                    
 
                 } else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
                     for (String tagTech : tag.getTechList()) {
                         Log.d(TAG, tagTech);
                         if (tagTech.equals(NdefFormatable.class.getName())) {
                             fireNdefFormatableEvent(tag);
-                        } else if (tagTech.equals(Ndef.class.getName())) { //
+                        } else if (tagTech.equals(Ndef.class.getName())) 
+						{ //
                             Ndef ndef = Ndef.get(tag);
-                            fireNdefEvent(NDEF, ndef, messages);
+							
+							Ndef ndef = Ndef.get(tag);
+							try {
+								while (true) {
+									try {
+										Thread.sleep(1000);
+
+										ndef.connect();
+										NdefMessage msg = ndef.getNdefMessage();
+
+										// TODO: do something
+										fireNdefEvent(NDEF, ndef, messages);
+									} catch (IOException e) {
+										// if the tag is gone we might want to end the thread:
+										break;
+									} finally {
+										try {
+											ndef.close();
+										} catch (Exception e) {}
+									}
+								}
+							} catch (InterruptedException e) {
+							}
+							
+                            
                         }
                     }
                 }
