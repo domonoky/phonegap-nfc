@@ -623,7 +623,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 								Thread.sleep(1000);
 
 								ndef.connect();
-								NdefMessage msg = ndef.getNdefMessage();
+								//NdefMessage msg = ndef.getNdefMessage();
 
 								// TODO: do something
 								fireNdefEvent(NDEF_MIME, ndef, messages);
@@ -655,7 +655,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 										Thread.sleep(1000);
 
 										ndef.connect();
-										NdefMessage msg = ndef.getNdefMessage();
+										//NdefMessage msg = ndef.getNdefMessage();
 
 										// TODO: do something
 										fireNdefEvent(NDEF, ndef, messages);
