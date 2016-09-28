@@ -617,7 +617,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) 
 				{
                     Ndef ndef = Ndef.get(tag);
-					fireNdefEvent(NDEF_MIME, ndef, messages);  //fire ndef message
+					fireNdefEvent(NDEF_MIME, ndef, messages[0]);  //fire ndef message
 					//try again every 1 second
 					try {
 						while (true) {
@@ -626,10 +626,8 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
 								ndef.connect();
 								NdefMessage msg = ndef.getNdefMessage();
-								Parcelable[] msgs;
-								msgs[0] = msg;
 								// fire message. TODO correct message content ?
-								fireNdefEvent(NDEF_MIME, ndef, msgs);
+								fireNdefEvent(NDEF_MIME, ndef, msg);
 							} catch (IOException e) {
 								// if the tag is gone we might want to end the thread:
 								break;
@@ -652,7 +650,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         } else if (tagTech.equals(Ndef.class.getName())) 
 						{ //							
 							Ndef ndef = Ndef.get(tag);
-							fireNdefEvent(NDEF, ndef, messages);  //fire message
+							fireNdefEvent(NDEF, ndef, messages[0]);  //fire message
 							//try again every second
 							try {
 								while (true) {
@@ -661,10 +659,8 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
 										ndef.connect();
 										NdefMessage msg = ndef.getNdefMessage();
-										Parcelable[] msgs;
-										msgs[0] = msg;
 										// fire message. TODO correct message content ?
-										fireNdefEvent(NDEF, ndef, msgs);
+										fireNdefEvent(NDEF, ndef, msg);
 									} catch (IOException e) {
 										// if the tag is gone we might want to end the thread:
 										break;
@@ -691,9 +687,9 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         });
     }
 
-    private void fireNdefEvent(String type, Ndef ndef, Parcelable[] messages) {
+    private void fireNdefEvent(String type, Ndef ndef, NdefMessage message) {
 
-        JSONObject jsonObject = buildNdefJSON(ndef, messages);
+        JSONObject jsonObject = buildNdefJSON(ndef, message);
         String tag = jsonObject.toString();
 
         String command = MessageFormat.format(javaScriptEventTemplate, type, tag);
@@ -716,26 +712,19 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         this.webView.sendJavascript(command);
     }
 
-    JSONObject buildNdefJSON(Ndef ndef, Parcelable[] messages) {
+    JSONObject buildNdefJSON(Ndef ndef, NdefMessage message) {
 
         JSONObject json = Util.ndefToJSON(ndef);
 
         // ndef is null for peer-to-peer
         // ndef and messages are null for ndef format-able
-        if (ndef == null && messages != null) {
+        if (ndef == null && message != null) {
 
             try {
+                json.put("ndefMessage", Util.messageToJSON(message));
+                // guessing type, would prefer a more definitive way to determine type
+                json.put("type", "NDEF Push Protocol");
 
-                if (messages.length > 0) {
-                    NdefMessage message = (NdefMessage) messages[0];
-                    json.put("ndefMessage", Util.messageToJSON(message));
-                    // guessing type, would prefer a more definitive way to determine type
-                    json.put("type", "NDEF Push Protocol");
-                }
-
-                if (messages.length > 1) {
-                    Log.wtf(TAG, "Expected one ndefMessage but found " + messages.length);
-                }
 
             } catch (JSONException e) {
                 // shouldn't happen
