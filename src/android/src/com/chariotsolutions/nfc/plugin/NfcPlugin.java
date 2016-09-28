@@ -617,7 +617,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) 
 				{
                     Ndef ndef = Ndef.get(tag);
-					fireNdefEvent(NDEF_MIME, ndef, messages[0]);  //fire ndef message
+					fireNdefEvent(NDEF_MIME, ndef,  (NdefMessage) messages[0]);  //fire ndef message
 					//try again every 1 second
 					try {
 						while (true) {
@@ -650,7 +650,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         } else if (tagTech.equals(Ndef.class.getName())) 
 						{ //							
 							Ndef ndef = Ndef.get(tag);
-							fireNdefEvent(NDEF, ndef, messages[0]);  //fire message
+							fireNdefEvent(NDEF, ndef, (NdefMessage) messages[0]);  //fire message
 							//try again every second
 							try {
 								while (true) {
