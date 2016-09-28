@@ -111,7 +111,11 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 				catch (FormatException  e)
 				{
 					break;
-				}							
+				}	
+				catch (InterruptedException e)
+				{
+					break;
+				}
 				finally {
 					try {
 						ndef.close();
