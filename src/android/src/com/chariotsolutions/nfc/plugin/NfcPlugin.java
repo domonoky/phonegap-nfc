@@ -626,9 +626,10 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
 								ndef.connect();
 								NdefMessage msg = ndef.getNdefMessage();
-
+								Parcelable[] msgs;
+								msgs[0] = msg;
 								// fire message. TODO correct message content ?
-								fireNdefEvent(NDEF_MIME, ndef, msg);
+								fireNdefEvent(NDEF_MIME, ndef, msgs);
 							} catch (IOException e) {
 								// if the tag is gone we might want to end the thread:
 								break;
