@@ -628,10 +628,11 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 								NdefMessage msg = ndef.getNdefMessage();
 								// fire message. TODO correct message content ?
 								fireNdefEvent(NDEF_MIME, ndef, msg);
-							} catch (IOException e) {
+							} catch (IOException | FormatException e) {
 								// if the tag is gone we might want to end the thread:
 								break;
-							} finally {
+							}					
+							finally {
 								try {
 									ndef.close();
 								} catch (Exception e) {}
@@ -661,7 +662,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 										NdefMessage msg = ndef.getNdefMessage();
 										// fire message. TODO correct message content ?
 										fireNdefEvent(NDEF, ndef, msg);
-									} catch (IOException e) {
+									} catch (IOException e | FormatException) {
 										// if the tag is gone we might want to end the thread:
 										break;
 									} finally {
