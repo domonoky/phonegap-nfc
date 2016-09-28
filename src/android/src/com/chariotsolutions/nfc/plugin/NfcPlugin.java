@@ -617,16 +617,18 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) 
 				{
                     Ndef ndef = Ndef.get(tag);
+					fireNdefEvent(NDEF_MIME, ndef, messages);  //fire ndef message
+					//try again every 1 second
 					try {
 						while (true) {
 							try {
 								Thread.sleep(1000);
 
 								ndef.connect();
-								//NdefMessage msg = ndef.getNdefMessage();
+								NdefMessage msg = ndef.getNdefMessage();
 
-								// TODO: do something
-								fireNdefEvent(NDEF_MIME, ndef, messages);
+								// fire message. TODO correct message content ?
+								fireNdefEvent(NDEF_MIME, ndef, msg);
 							} catch (IOException e) {
 								// if the tag is gone we might want to end the thread:
 								break;
@@ -649,16 +651,18 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         } else if (tagTech.equals(Ndef.class.getName())) 
 						{ //							
 							Ndef ndef = Ndef.get(tag);
+							fireNdefEvent(NDEF, ndef, messages);  //fire message
+							//try again every second
 							try {
 								while (true) {
 									try {
 										Thread.sleep(1000);
 
 										ndef.connect();
-										//NdefMessage msg = ndef.getNdefMessage();
+										NdefMessage msg = ndef.getNdefMessage();
 
-										// TODO: do something
-										fireNdefEvent(NDEF, ndef, messages);
+										// fire message. TODO correct message content ?
+										fireNdefEvent(NDEF, ndef, msg);
 									} catch (IOException e) {
 										// if the tag is gone we might want to end the thread:
 										break;
