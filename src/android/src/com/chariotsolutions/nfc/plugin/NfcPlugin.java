@@ -31,7 +31,9 @@ import android.nfc.tech.NdefFormatable;
 import android.os.Parcelable;
 import android.util.Log;
 
-public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCompleteCallback {
+
+
+public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCompleteCallback, NfcAdapter.ReaderCallback  {
     private static final String REGISTER_MIME_TYPE = "registerMimeType";
     private static final String REMOVE_MIME_TYPE = "removeMimeType";
     private static final String REGISTER_NDEF = "registerNdef";
@@ -71,7 +73,72 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     private CallbackContext shareTagCallback;
     private CallbackContext handoverCallback;
+	public static int READER_FLAGS =
+            NfcAdapter.FLAG_READER_NFC_A ;
 
+	 /**
+     * Callback when a new tag is discovered by the system.
+     *
+     * <p>Communication with the card should take place here.
+     *
+     * @param tag Discovered tag
+     */
+    @Override
+    public void onTagDiscovered(Tag tag) {
+        Log.i(TAG, "New tag discovered");
+        // 
+        // Liteblox card is a ndef card, but needs to be read repeatedly
+		//
+		
+		Ndef ndef = Ndef.get(tag);
+		if(ndef != null)
+		{
+			while (true) 
+			{
+				try {
+					
+					ndef.connect();
+					NdefMessage msg = ndef.getNdefMessage();
+					Log.i(TAG, "NDef message recieved");
+					// fire message. TODO correct message content ?
+					fireNdefEvent(NDEF_MIME, ndef, msg);
+					
+					Thread.sleep(1000);
+				} catch (IOException e) {
+					// if the tag is gone we might want to end the thread:
+					break;
+				}	
+				catch (FormatException  e)
+				{
+					break;
+				}							
+				finally {
+					try {
+						ndef.close();
+					} catch (Exception e) {}
+				}
+			}
+		}
+    }
+	
+	 private void enableReaderMode() {
+        Log.i(TAG, "Enabling reader mode");
+        Activity activity = getActivity();
+        NfcAdapter nfc = NfcAdapter.getDefaultAdapter(activity);
+        if (nfc != null) {
+            nfc.enableReaderMode(activity, this, READER_FLAGS, null);
+        }
+    }
+
+    private void disableReaderMode() {
+        Log.i(TAG, "Disabling reader mode");
+        Activity activity = getActivity();
+        NfcAdapter nfc = NfcAdapter.getDefaultAdapter(activity);
+        if (nfc != null) {
+            nfc.disableReaderMode(activity);
+        }
+    }
+	
     @Override
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
 
@@ -195,7 +262,8 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     private void init(CallbackContext callbackContext) {
         Log.d(TAG, "Enabling plugin " + getIntent());
 
-        startNfc();
+		enableReaderMode();
+        //startNfc();
         if (!recycledIntent()) {
             parseMessage();
         }
@@ -599,6 +667,8 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         return techLists.toArray(new String[0][0]);
     }
 
+	
+	
     void parseMessage() {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
@@ -760,7 +830,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         super.onPause(multitasking);
         if (multitasking) {
             // nfc can't run in background
-            stopNfc();
+           disableReaderMode();
         }
     }
 
@@ -768,7 +838,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     public void onResume(boolean multitasking) {
         Log.d(TAG, "onResume " + getIntent());
         super.onResume(multitasking);
-        startNfc();
+       enableReaderMode();
     }
 
     @Override
@@ -777,7 +847,8 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         super.onNewIntent(intent);
         setIntent(intent);
         savedIntent = intent;
-        parseMessage();
+        //parseMessage();
+		enableReaderMode();
     }
 
     private Activity getActivity() {
